@@ -10,6 +10,8 @@ print -r -- "hf2-bridge read-only acceptance audit"
 check test -d "$ROOT/.git"
 check git -C "$ROOT" diff --quiet
 check git -C "$ROOT" diff --cached --quiet
+check git -C "$ROOT" ls-remote --exit-code origin refs/heads/main
+check curl -fsSL --max-time 20 https://raw.githubusercontent.com/jgilles97-ctrl/hf2-bridge/main/INBOX/T-0001.md
 check "$ROOT/scripts/hf2" status
 check test -f "$ROOT/HANDOFF.md"
 check test -f "$ROOT/RUNBOOK.md"
