@@ -43,18 +43,19 @@ doctor() {
   status
   section "DOCTOR"
   missing=0
+  setup_missing=0
   for cmd in git gh goose node brew tailscale; do
     if command -v "$cmd" >/dev/null 2>&1; then say "OK: $cmd is installed"; else say "MISSING: $cmd is not installed"; missing=1; fi
   done
   [[ -d "$ROOT/.git" ]] && say "OK: bridge is a Git repository" || { say "MISSING: bridge Git metadata"; missing=1; }
   if [[ -f "$HOME/.config/hf2-bridge/env" ]]; then
     mode=$(stat -f %Lp "$HOME/.config/hf2-bridge/env" 2>/dev/null || say unverified)
-    [[ "$mode" == "600" ]] && say "OK: private Goose env file exists with mode 600" || say "ACTION NEEDED: private Goose env mode is ${mode}, expected 600"
+    if [[ "$mode" == "600" ]]; then say "OK: private Goose env file exists with mode 600"; else say "ACTION NEEDED: private Goose env mode is ${mode}, expected 600"; setup_missing=1; fi
   else
-    say "ACTION NEEDED: $HOME/.config/hf2-bridge/env is not configured"
+    say "ACTION NEEDED: $HOME/.config/hf2-bridge/env is not configured"; setup_missing=1
   fi
-  [[ -f "$HOME/Library/LaunchAgents/com.$USER.hf2bridge.plist" ]] && say "OK: launchd job file exists" || say "ACTION NEEDED: launchd job is not installed"
-  (( missing == 0 )) && say "doctor result: installed prerequisites are present" || say "doctor result: one or more prerequisites are missing"
+  [[ -f "$HOME/Library/LaunchAgents/com.$USER.hf2bridge.plist" ]] && say "OK: launchd job file exists" || { say "ACTION NEEDED: launchd job is not installed"; setup_missing=1; }
+  if (( missing != 0 )); then say "doctor result: one or more installed prerequisites are missing"; elif (( setup_missing != 0 )); then say "doctor result: installed prerequisites are present, but bridge setup is incomplete"; else say "doctor result: bridge prerequisites and setup are present"; fi
 }
 logs() {
   section "BRIDGE LOG"

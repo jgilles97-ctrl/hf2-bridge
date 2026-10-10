@@ -8,6 +8,8 @@ The watcher never runs the game. It is plumbing for evidence and handoffs.
 
 Run `scripts/configure-venice.sh` on the Mac to enter the Venice key locally. The helper does not print the key, does not commit it, and writes the file with mode 600. It defaults to the currently recommended function-calling model `z-ai-glm-5-3-flash`.
 
+Run `scripts/verify-bridge.sh` for a read-only acceptance audit. `INCOMPLETE` is expected until the Venice key, launchd job, and external `R-0001` fetch have all been proven.
+
 ## Task format
 
 ```text
