@@ -1,0 +1,69 @@
+#!/bin/zsh
+set -u
+ROOT="${HF2_BRIDGE_ROOT:-${HOME}/Projects/hf2-bridge}"
+BOTTLES="${HOME}/Library/Application Support/CrossOver/Bottles"
+ARCHIVE="${HOME}/Library/Mobile Documents/com~apple~CloudDocs/Downloads/House.Flipper.2.v2026.05.21.ALL.DLC.zip"
+HF2_BOTTLE="${BOTTLES}/HF2-Test"
+PLAYER_LOG="${HF2_BOTTLE}/drive_c/users/crossover/AppData/LocalLow/Frozen District/House Flipper 2/Player.log"
+say() { print -r -- "$*"; }
+section() { print -r -- ""; say "== $* =="; }
+status() {
+  section "SYSTEM"
+  say "macOS: $(sw_vers -productVersion 2>/dev/null || say unverified)"
+  say "architecture: $(uname -m 2>/dev/null || say unverified)"
+  say "free internal space: $(df -h / | awk 'NR==2 {print $4}')"
+  if mount | grep -q ' on /Volumes/Untitled '; then say "external mount: /Volumes/Untitled mounted"; else say "external mount: /Volumes/Untitled not mounted"; fi
+  section "ARCHIVE"
+  if [[ -e "$ARCHIVE" ]]; then
+    say "archive: present"
+    stat -f 'archive size: %z bytes' "$ARCHIVE" 2>/dev/null || say "archive size: unverified"
+    flags=$(ls -lO "$ARCHIVE" 2>/dev/null | sed -n '1p')
+    say "archive flags: ${flags:-unverified}"
+    [[ "$flags" == *dataless* ]] && say "archive warning: iCloud dataless/placeholder flag observed"
+  else
+    say "archive: absent"
+  fi
+  section "GAME AND BOTTLES"
+  exe=$(find "$HF2_BOTTLE/drive_c" -type f -iname 'HouseFlipper*.exe' -print 2>/dev/null | head -1)
+  say "game exe path: ${exe:-not found}"
+  orig_count=$(find "$HF2_BOTTLE/drive_c" -type f -name '*.orig' -print 2>/dev/null | wc -l | tr -d ' ')
+  say ".orig backup count in HF2-Test: ${orig_count:-0}"
+  crossover="/Applications/CrossOver.app"
+  if [[ -f "$crossover/Contents/Info.plist" ]]; then say "CrossOver version: $(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$crossover/Contents/Info.plist" 2>/dev/null || say unverified)"; else say "CrossOver version: not found"; fi
+  say "bottle list:"
+  if [[ -d "$BOTTLES" ]]; then find "$BOTTLES" -maxdepth 1 -mindepth 1 -type d -exec basename {} \; | sort | sed 's/^/  /'; else say "  unverified"; fi
+  steam=$(find "$BOTTLES" -type f -iname 'steam.exe' -print 2>/dev/null | head -20)
+  say "bottles containing Steam:"
+  if [[ -n "$steam" ]]; then print -r -- "$steam" | sed 's#/.*/Bottles/##; s#/drive_c/.*##' | sort -u | sed 's/^/  /'; else say "  none found"; fi
+  section "LOG TAIL"
+  player=$(find "$HF2_BOTTLE/drive_c" -type f -iname 'Player.log' -print 2>/dev/null | head -1)
+  if [[ -n "$player" ]]; then say "Player.log path: $player"; tail -20 "$player"; else say "Player.log: not found"; fi
+}
+doctor() {
+  status
+  section "DOCTOR"
+  missing=0
+  for cmd in git gh goose node brew tailscale; do
+    if command -v "$cmd" >/dev/null 2>&1; then say "OK: $cmd is installed"; else say "MISSING: $cmd is not installed"; missing=1; fi
+  done
+  [[ -d "$ROOT/.git" ]] && say "OK: bridge is a Git repository" || { say "MISSING: bridge Git metadata"; missing=1; }
+  [[ -f "$HOME/.config/hf2-bridge/env" ]] && say "OK: private Goose env file exists" || say "ACTION NEEDED: $HOME/.config/hf2-bridge/env is not configured"
+  [[ -f "$HOME/Library/LaunchAgents/com.$USER.hf2bridge.plist" ]] && say "OK: launchd job file exists" || say "ACTION NEEDED: launchd job is not installed"
+  (( missing == 0 )) && say "doctor result: installed prerequisites are present" || say "doctor result: one or more prerequisites are missing"
+}
+logs() {
+  section "BRIDGE LOG"
+  [[ -f "$HOME/Library/Logs/hf2bridge.log" ]] && tail -80 "$HOME/Library/Logs/hf2bridge.log" || say "bridge log: not found"
+  section "PLAYER.LOG"
+  [[ -f "$PLAYER_LOG" ]] && tail -80 "$PLAYER_LOG" || say "Player.log: not found"
+}
+require_confirmation() { say "This command is not read-only: $1"; say "Review RUNBOOK.md and run it explicitly when ready."; return 2; }
+case "${1:-status}" in
+  status) status ;;
+  doctor) doctor ;;
+  logs) logs ;;
+  launch|steam|revert|extract|crack|uninstall) require_confirmation "$1" ;;
+  pause) exec "$ROOT/scripts/pause.sh" ;;
+  resume) exec "$ROOT/scripts/resume.sh" ;;
+  *) say "usage: hf2 {status|doctor|logs|launch|steam|revert|extract|crack|pause|resume|uninstall}"; exit 64 ;;
+esac

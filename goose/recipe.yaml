@@ -1,0 +1,12 @@
+version: 1.0.0
+title: hf2 bridge worker
+description: Headless, bounded worker for numbered hf2-bridge tasks.
+instructions: Read goose/system-prompt.md, HANDOFF.md, and RUNBOOK.md before acting.
+extensions:
+  developer:
+    bundled: developer
+  github:
+    bundled: github
+  memory:
+    bundled: memory
+
