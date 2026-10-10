@@ -3,7 +3,7 @@
 macOS: 27.0
 architecture: arm64
 free internal space: 27Gi
-external mount: /Volumes/Untitled not mounted
+external mount: /Volumes/Untitled mounted
 
 == ARCHIVE ==
 archive: present
@@ -25,4 +25,4 @@ bottles containing Steam:
 
 == LOG TAIL ==
 Player.log: not found
-Generated at: 2026-10-10T02:57:14Z
+Generated at: 2026-10-10T02:57:26Z

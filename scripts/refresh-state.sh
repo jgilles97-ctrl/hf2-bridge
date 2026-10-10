@@ -1,7 +1,7 @@
 #!/bin/zsh
 set -u
 ROOT="${HF2_BRIDGE_ROOT:-${HOME}/Projects/hf2-bridge}"
-PATH="/opt/homebrew/bin:/usr/local/bin:${HOME}/.local/bin:/usr/bin:/bin"
+PATH="/opt/homebrew/bin:/usr/local/bin:${HOME}/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 export PATH
 tmp=$(mktemp "$ROOT/STATE/.status.XXXXXX")
 "$ROOT/scripts/hf2" status > "$tmp"

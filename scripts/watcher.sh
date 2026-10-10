@@ -1,6 +1,6 @@
 #!/bin/zsh
 set -u
-PATH="/opt/homebrew/bin:/usr/local/bin:${HOME}/.local/bin:/usr/bin:/bin"
+PATH="/opt/homebrew/bin:/usr/local/bin:${HOME}/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
 export PATH HOME
 ROOT="${HF2_BRIDGE_ROOT:-${HOME}/Projects/hf2-bridge}"
 LOCK="$ROOT/.locks/run"
