@@ -33,7 +33,7 @@ Never invent task numbers. Continue the sequence by inspecting existing `INBOX/T
 
 ## Goose configuration
 
-The worker reads `$HOME/.config/hf2-bridge/env`, which must be mode 600 and must never be committed. The expected variables are `VENICE_API_KEY`, `GOOSE_MODEL`, `GOOSE_PROVIDER=openai`, `OPENAI_HOST=https://api.venice.ai`, and `OPENAI_BASE_PATH=/api/v1`. The installed Goose 1.52.0 exposes `OPENAI_HOST` and `OPENAI_BASE_PATH` in its current configuration. Confirm the current model with `curl https://api.venice.ai/api/v1/models`; select a tool-calling-capable model before enabling the worker.
+The worker reads `$HOME/.config/hf2-bridge/env`, which must be mode 600 and must never be committed. Current Goose documentation and the installed Goose 1.52.0 binary expose a dedicated `venice` provider. The expected variables are `VENICE_API_KEY`, `GOOSE_PROVIDER=venice`, and `GOOSE_MODEL`. `VENICE_HOST=https://api.venice.ai` and `VENICE_BASE_PATH=/api/v1` are supported optional overrides. Confirm the current model with `curl https://api.venice.ai/api/v1/models`; the checked endpoint currently identifies `z-ai-glm-5-3-flash` as function-calling capable and optimized for code.
 
 ## launchd
 

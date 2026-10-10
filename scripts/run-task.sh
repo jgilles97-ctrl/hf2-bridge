@@ -1,5 +1,7 @@
 #!/bin/zsh
 set -u
+PATH="/opt/homebrew/bin:/usr/local/bin:${HOME}/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+export PATH
 ROOT="${HF2_BRIDGE_ROOT:-${HOME}/Projects/hf2-bridge}"
 ENV_FILE="${HOME}/.config/hf2-bridge/env"
 TASK="${1:-}"
