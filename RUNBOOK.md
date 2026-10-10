@@ -6,6 +6,8 @@ Write one numbered Markdown task to `INBOX/`. Use the next unused number. The Ma
 
 The watcher never runs the game. It is plumbing for evidence and handoffs.
 
+Run `scripts/configure-venice.sh` on the Mac to enter the Venice key locally. The helper does not print the key, does not commit it, and writes the file with mode 600. It defaults to the currently recommended function-calling model `z-ai-glm-5-3-flash`.
+
 ## Task format
 
 ```text

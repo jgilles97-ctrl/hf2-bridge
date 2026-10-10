@@ -15,3 +15,5 @@ The bridge is a small, observable handoff loop between Venice, this Mac, Goose, 
 
 This repository contains plumbing and documentation only. It does not contain the game archive, game binaries, credentials, or CrossOver bottle files.
 
+To configure the private Venice worker on the Mac, run `scripts/configure-venice.sh`. It reads the key without echoing it, stores it at `~/.config/hf2-bridge/env` with mode 600, and never writes it into this repository.
+

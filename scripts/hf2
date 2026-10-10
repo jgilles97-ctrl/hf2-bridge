@@ -47,7 +47,12 @@ doctor() {
     if command -v "$cmd" >/dev/null 2>&1; then say "OK: $cmd is installed"; else say "MISSING: $cmd is not installed"; missing=1; fi
   done
   [[ -d "$ROOT/.git" ]] && say "OK: bridge is a Git repository" || { say "MISSING: bridge Git metadata"; missing=1; }
-  [[ -f "$HOME/.config/hf2-bridge/env" ]] && say "OK: private Goose env file exists" || say "ACTION NEEDED: $HOME/.config/hf2-bridge/env is not configured"
+  if [[ -f "$HOME/.config/hf2-bridge/env" ]]; then
+    mode=$(stat -f %Lp "$HOME/.config/hf2-bridge/env" 2>/dev/null || say unverified)
+    [[ "$mode" == "600" ]] && say "OK: private Goose env file exists with mode 600" || say "ACTION NEEDED: private Goose env mode is ${mode}, expected 600"
+  else
+    say "ACTION NEEDED: $HOME/.config/hf2-bridge/env is not configured"
+  fi
   [[ -f "$HOME/Library/LaunchAgents/com.$USER.hf2bridge.plist" ]] && say "OK: launchd job file exists" || say "ACTION NEEDED: launchd job is not installed"
   (( missing == 0 )) && say "doctor result: installed prerequisites are present" || say "doctor result: one or more prerequisites are missing"
 }

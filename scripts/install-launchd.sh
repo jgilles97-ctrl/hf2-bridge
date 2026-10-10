@@ -1,6 +1,13 @@
 #!/bin/zsh
 set -u
+PATH="/opt/homebrew/bin:/usr/local/bin:${HOME}/.local/bin:/usr/bin:/bin:/usr/sbin:/sbin"
+export PATH
 ROOT="${HF2_BRIDGE_ROOT:-${HOME}/Projects/hf2-bridge}"
+ENV_FILE="$HOME/.config/hf2-bridge/env"
+if [[ ! -f "$ENV_FILE" ]] || ! rg -q '^VENICE_API_KEY=[^[:space:]]+' "$ENV_FILE"; then
+  print -u2 -- "missing a configured Venice key; run scripts/configure-venice.sh first"
+  exit 78
+fi
 label="com.$USER.hf2bridge"
 dir="$HOME/Library/LaunchAgents"
 plist="$dir/$label.plist"
