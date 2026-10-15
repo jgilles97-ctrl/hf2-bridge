@@ -8,6 +8,7 @@ PLAYER_LOG="${HF2_BOTTLE}/drive_c/users/crossover/AppData/LocalLow/Frozen Distri
 say() { print -r -- "$*"; }
 section() { print -r -- ""; say "== $* =="; }
 status() {
+  section "LOCAL-ONLY DETAILED STATUS — DO NOT COMMIT"
   section "SYSTEM"
   say "macOS: $(sw_vers -productVersion 2>/dev/null || say unverified)"
   say "architecture: $(uname -m 2>/dev/null || say unverified)"
@@ -39,6 +40,22 @@ status() {
   player=$(find "$HF2_BOTTLE/drive_c" -type f -iname 'Player.log' -print 2>/dev/null | head -1)
   if [[ -n "$player" ]]; then say "Player.log path: $player"; tail -20 "$player"; else say "Player.log: not found"; fi
 }
+public_status() {
+  section "PUBLIC BRIDGE STATUS"
+  [[ -d "$ROOT/.git" ]] && say "reference host: configured" || say "reference host: unverified"
+  say "target device class: M-series iPad"
+  if [[ -e "$ARCHIVE" ]]; then
+    flags=$(ls -lO "$ARCHIVE" 2>/dev/null | sed -n '1p')
+    [[ "$flags" == *dataless* ]] && say "owned game archive: placeholder" || say "owned game archive: present"
+  else
+    say "owned game archive: absent"
+  fi
+  [[ -d "$HF2_BOTTLE" ]] && say "House Flipper 2 test environment: present" || say "House Flipper 2 test environment: absent"
+  exe=$(find "$HF2_BOTTLE/drive_c" -type f -iname 'HouseFlipper*.exe' -print 2>/dev/null | head -1)
+  [[ -n "$exe" ]] && say "House Flipper 2 executable: present" || say "House Flipper 2 executable: absent"
+  [[ -f "$PLAYER_LOG" ]] && say "House Flipper 2 log: present" || say "House Flipper 2 log: absent"
+  say "detailed paths, storage values, installed-app inventory, and raw logs: local-only"
+}
 doctor() {
   status
   section "DOCTOR"
@@ -52,24 +69,26 @@ doctor() {
     mode=$(stat -f %Lp "$HOME/.config/hf2-bridge/env" 2>/dev/null || say unverified)
     if [[ "$mode" == "600" ]]; then say "OK: private Goose env file exists with mode 600"; else say "ACTION NEEDED: private Goose env mode is ${mode}, expected 600"; setup_missing=1; fi
   else
-    say "ACTION NEEDED: $HOME/.config/hf2-bridge/env is not configured"; setup_missing=1
+    say "ACTION NEEDED: private Goose environment is not configured"; setup_missing=1
   fi
   [[ -f "$HOME/Library/LaunchAgents/com.$USER.hf2bridge.plist" ]] && say "OK: launchd job file exists" || { say "ACTION NEEDED: launchd job is not installed"; setup_missing=1; }
   if (( missing != 0 )); then say "doctor result: one or more installed prerequisites are missing"; elif (( setup_missing != 0 )); then say "doctor result: installed prerequisites are present, but bridge setup is incomplete"; else say "doctor result: bridge prerequisites and setup are present"; fi
 }
 logs() {
-  section "BRIDGE LOG"
+  section "LOCAL-ONLY BRIDGE LOG"
   [[ -f "$HOME/Library/Logs/hf2bridge.log" ]] && tail -80 "$HOME/Library/Logs/hf2bridge.log" || say "bridge log: not found"
-  section "PLAYER.LOG"
+  section "LOCAL-ONLY PLAYER.LOG"
   [[ -f "$PLAYER_LOG" ]] && tail -80 "$PLAYER_LOG" || say "Player.log: not found"
 }
 require_confirmation() { say "This command is not read-only: $1"; say "Review RUNBOOK.md and run it explicitly when ready."; return 2; }
-case "${1:-status}" in
+case "${1:-public-status}" in
+  public-status) public_status ;;
   status) status ;;
   doctor) doctor ;;
   logs) logs ;;
   launch|steam|revert|extract|crack|uninstall) require_confirmation "$1" ;;
   pause) exec "$ROOT/scripts/pause.sh" ;;
   resume) exec "$ROOT/scripts/resume.sh" ;;
-  *) say "usage: hf2 {status|doctor|logs|launch|steam|revert|extract|crack|pause|resume|uninstall}"; exit 64 ;;
+  *) say "usage: hf2 {public-status|status|doctor|logs|launch|steam|revert|extract|crack|pause|resume|uninstall}"; exit 64 ;;
 esac
+

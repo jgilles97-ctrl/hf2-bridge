@@ -2,13 +2,22 @@
 
 ## The normal loop
 
-Write one numbered Markdown task to `INBOX/`. Use the next unused number. The Mac watcher checks once per minute and processes the lowest-numbered task that does not already have a matching result. It writes `OUTBOX/`, updates the state snapshot, commits only meaningful changes, and pushes.
+Write one numbered Markdown task to `INBOX/`. Use the next unused number. The Mac watcher checks once per minute and processes the lowest-numbered task that does not already have a matching result. It writes a sanitized result to `OUTBOX/`, updates the public state snapshot, commits only meaningful changes, and pushes.
 
 The watcher never runs the game. It is plumbing for evidence and handoffs.
 
-Run `scripts/configure-venice.sh` on the Mac to enter the Venice key locally. The helper does not print the key, does not commit it, and writes the file with mode 600. It defaults to the currently recommended function-calling model `z-ai-glm-5-3-flash`.
+Run `scripts/configure-venice.sh` on the Mac to enter the Venice key locally. The helper does not print the key, does not commit it, and writes the file with mode 600. Select a current supported function-calling model during local configuration.
 
-Run `scripts/verify-bridge.sh` for a read-only acceptance audit. `INCOMPLETE` is expected until the Venice key, launchd job, and external `R-0001` fetch have all been proven.
+Run `scripts/verify-bridge.sh` for a read-only acceptance audit. `INCOMPLETE` is expected until the private Venice configuration, launchd job, and external `R-0001` fetch have all been proven.
+
+## Public/private boundary
+
+- `hf2 status` is a detailed local-only diagnostic. Never paste or commit its output.
+- `hf2 logs` is local-only. Never paste or commit raw logs.
+- `hf2 public-status` is categorical and is the only status command allowed in tracked state or public task results.
+- `scripts/refresh-state.sh` writes the tracked `STATE/status.md` from `public-status` only.
+- Raw log tails are written under ignored `.private-state/logs/` with private permissions.
+- Anything written to `STATE/`, `OUTBOX/`, `journal/`, or another tracked file is public. It must not contain user names, absolute local paths, numeric storage or file sizes, installed-app versions, unrelated project names, device serials, environment contents, credentials, or raw logs.
 
 ## Task format
 
@@ -33,27 +42,23 @@ Never invent task numbers. Continue the sequence by inspecting existing `INBOX/T
 
 ## Commands
 
-`$HOME/Projects/hf2-bridge/scripts/hf2 status` is read-only and prints the current machine snapshot. `doctor` checks prerequisites. `logs` prints the latest bridge and Player.log tails. `launch`, `steam`, `extract`, `crack`, `revert`, and `uninstall` are explicit operational commands and are not used by the watcher automatically.
+`$HOME/Projects/hf2-bridge/scripts/hf2 public-status` is read-only and safe for tracked public evidence. `status`, `doctor`, and `logs` are read-only but local-only. `launch`, `steam`, `extract`, `crack`, `revert`, and `uninstall` are explicit operational commands and are not used by the watcher automatically.
 
 ## Goose configuration
 
-The worker reads `$HOME/.config/hf2-bridge/env`, which must be mode 600 and must never be committed. Current Goose documentation and the installed Goose 1.52.0 binary expose a dedicated `venice` provider. The expected variables are `VENICE_API_KEY`, `GOOSE_PROVIDER=venice`, and `GOOSE_MODEL`. `VENICE_HOST=https://api.venice.ai` and `VENICE_BASE_PATH=/api/v1` are supported optional overrides. Confirm the current model with `curl https://api.venice.ai/api/v1/models`; the checked endpoint currently identifies `z-ai-glm-5-3-flash` as function-calling capable and optimized for code.
+The worker reads a private mode-600 environment file outside the repository. The expected variables are `VENICE_API_KEY`, `GOOSE_PROVIDER=venice`, and `GOOSE_MODEL`; supported host and base-path overrides may be supplied locally. Confirm current models against Venice's official model endpoint before configuration. Never copy environment contents into a tracked result.
 
 ## launchd
 
-The installer creates `~/Library/LaunchAgents/com.$USER.hf2bridge.plist`. It runs `scripts/watcher.sh` every 60 seconds, with a 30-second throttle and `RunAtLoad`. Pause and resume use the supplied scripts. Uninstall removes only this job and leaves the repository and game files in place.
+The installer creates a per-user launchd job. It runs `scripts/watcher.sh` once per minute, with throttling and run-at-login behavior. Pause and resume use the supplied scripts. Uninstall removes only this job and leaves the repository and game files in place.
 
 ## Remote access
 
-After Joey explicitly enables Remote Login and confirms the Mac's Tailscale name, an iPad can run:
+After Joey explicitly enables Remote Login and confirms the Mac's private network name, an iPad may invoke `hf2 public-status` over SSH for shareable evidence. Detailed local diagnostics must remain in the authenticated private session.
 
-```text
-ssh <mac-user>@<mac-tailscale-name> '$HOME/Projects/hf2-bridge/scripts/hf2 status'
-```
-
-The iPad GitHub app can create an `INBOX/T-xxxx.md` file directly. The watcher will pick it up within 60 seconds when the commit is visible to the Mac.
+The iPad GitHub app can create an `INBOX/T-xxxx.md` file directly. The watcher will pick it up when the commit is visible to the Mac.
 
 ## Teardown
 
-Run `scripts/uninstall.sh`. It unloads and removes only the bridge's launchd job. It does not delete the repository, the archive, any CrossOver bottle, or game files.
+Run `scripts/uninstall.sh`. It unloads and removes only the bridge's launchd job. It does not delete the repository, the archive, any compatibility environment, or game files.
 

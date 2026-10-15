@@ -1,1 +1,2 @@
-Player.log not found
+Raw log tails are local-only under .private-state/logs/ and are never generated into this tracked file.
+

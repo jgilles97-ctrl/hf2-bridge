@@ -3,6 +3,7 @@
 .DS_Store
 *.log
 .locks/
+.private-state/
 __pycache__/
 *.py[cod]
 node_modules/
